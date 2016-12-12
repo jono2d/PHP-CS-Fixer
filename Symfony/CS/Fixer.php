@@ -188,15 +188,23 @@ class Fixer
             return;
         }
 
-        if ($this->lintManager && !$this->lintManager->createProcessForFile($file->getRealPath())->isSuccessful()) {
-            if ($this->eventDispatcher) {
-                $this->eventDispatcher->dispatch(
-                    FixerFileProcessedEvent::NAME,
-                    FixerFileProcessedEvent::create()->setStatus(FixerFileProcessedEvent::STATUS_INVALID)
-                );
-            }
+        if ($this->lintManager) {
+            $lintProcess = $this->lintManager->createProcessForFile($file->getRealPath());
 
-            return;
+            if (!$lintProcess->isSuccessful()) {
+                if ($this->eventDispatcher) {
+                    $this->eventDispatcher->dispatch(
+                        FixerFileProcessedEvent::NAME,
+                        FixerFileProcessedEvent::create()->setStatus(FixerFileProcessedEvent::STATUS_INVALID)
+                    );
+                }
+
+                if ($this->errorsManager) {
+                    $this->errorsManager->report(ErrorsManager::ERROR_TYPE_LINT, $this->getFileRelativePathname($file), $lintProcess->getOutput());
+                }
+
+                return;
+            }
         }
 
         $appliedFixers = array();
