@@ -576,6 +576,14 @@ EOF
 
             foreach ($this->errorsManager->getErrors() as $i => $error) {
                 $stdErr->writeln(sprintf('%4d) %s', $i + 1, $error['filepath']));
+                if (OutputInterface::VERBOSITY_DEBUG <= $verbosity) {
+                    if ($error['type'] === ErrorsManager::ERROR_TYPE_EXCEPTION) {
+                        $stdErr->writeln(sprintf('      %s:', 'Exception'));
+                    } elseif ($error['type'] === ErrorsManager::ERROR_TYPE_LINT) {
+                        $stdErr->writeln(sprintf('      %s:', 'Lint error'));
+                    }
+                    $stdErr->writeln(sprintf('%s', $error['message']));
+                }
             }
         }
 
